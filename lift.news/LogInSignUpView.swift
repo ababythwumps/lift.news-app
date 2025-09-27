@@ -16,6 +16,8 @@ struct LogInSignUpView: View {
 	
 	var screenWidth = UIScreen.main.bounds.width
 	var screenHeight = UIScreen.main.bounds.height
+	@Environment(\.colorScheme) var colorScheme
+	@Environment(\.dismiss) var dismiss
 	
 	var body: some View {
 		VStack {
@@ -33,31 +35,34 @@ struct LogInSignUpView: View {
 			Button {
 				signUpClicked = true
 			} label: {
-				ZStack {
-					RoundedRectangle(cornerRadius: 30)
-						.frame(width: screenWidth * 0.9, height: screenHeight/15)
-					
-					Text("get started")
-						.bold()
-						.font(.title2)
-						.foregroundStyle(.white)
-				}
-			}
+				Text("get started")
+					.font(.title3)
+					.padding(.vertical)
+					.foregroundStyle(colorScheme == .light ? Color.white : Color.black)
+					.background(
+						Rectangle()
+							.stroke(.primary, lineWidth: 2)
+							.frame(width: screenWidth * 0.9)
+							.background(colorScheme == .light ? Color.black : Color.white)
+					)
+					.padding(.trailing)
+			}.buttonStyle(PlainButtonStyle())
 			
 			Button {
 				logInClicked = true
 			} label: {
-				ZStack {
-					RoundedRectangle(cornerRadius: 30)
-						.frame(width: screenWidth * 0.9, height: screenHeight/15)
-						.foregroundStyle(.white)
-					
-					Text("log in")
-						.bold()
-						.font(.title2)
-						.foregroundStyle(.primary)
-				}
-			}
+				Text("log in")
+					.font(.title3)
+					.padding(.horizontal)
+					.padding(.vertical)
+					.background(Color.clear)
+					.overlay(
+						Rectangle()
+							.stroke(.primary, lineWidth: 2)
+							.frame(width: screenWidth * 0.9)
+					)
+					.padding(.trailing)
+			}.buttonStyle(PlainButtonStyle())
 			
 			Spacer()
 		}.task {
@@ -68,13 +73,15 @@ struct LogInSignUpView: View {
 			}
 		}
 		
-		.sheet(isPresented: self.$logInClicked) {
+		.sheet(isPresented: self.$logInClicked, onDismiss: {
+			dismiss()
+		}) {
 			LogInView(authViewModel: authViewModel, appViewModel: appViewModel)
-				.interactiveDismissDisabled()
 		}
-		.sheet(isPresented: self.$signUpClicked) {
+		.sheet(isPresented: self.$signUpClicked, onDismiss: {
+			dismiss()
+		}) {
 			SignUpView(authViewModel: authViewModel, appViewModel: appViewModel)
-				.interactiveDismissDisabled()
 		}
 	}
 }

@@ -18,6 +18,7 @@ struct LogInView: View {
 	
 	var screenWidth = UIScreen.main.bounds.width
 	var screenHeight = UIScreen.main.bounds.height
+	@Environment(\.colorScheme) var colorScheme
 	
 	var body: some View {
 		VStack {
@@ -25,7 +26,7 @@ struct LogInView: View {
 				.frame(height: screenHeight/15)
 			
 			HStack {
-				Text("Log in")
+				Text("log in")
 					.bold()
 					.font(.largeTitle)
 					.foregroundStyle(.primary)
@@ -36,7 +37,7 @@ struct LogInView: View {
 			
 			if authViewModel.errorMessage != "" {
 				ZStack {
-					RoundedRectangle(cornerRadius: 10)
+					Rectangle()
 						.frame(width: screenWidth * 0.9, height: screenHeight/15)
 						.foregroundStyle(.red)
 						.opacity(0.75)
@@ -49,7 +50,7 @@ struct LogInView: View {
 			}
 			
 			ZStack {
-				RoundedRectangle(cornerRadius: 30)
+				Rectangle()
 					.frame(width: screenWidth * 0.9, height: screenHeight/15)
 					.foregroundStyle(.white)
 				
@@ -59,7 +60,7 @@ struct LogInView: View {
 			}
 			
 			ZStack {
-				RoundedRectangle(cornerRadius: 30)
+				Rectangle()
 					.frame(width: screenWidth * 0.9, height: screenHeight/15)
 					.foregroundStyle(.white)
 				
@@ -78,16 +79,18 @@ struct LogInView: View {
 					}
 				}
 			} label: {
-				ZStack {
-					RoundedRectangle(cornerRadius: 30)
-						.frame(width: screenWidth * 0.9, height: screenHeight/15)
-					
-					Text("Log in")
-						.bold()
-						.font(.title2)
-						.foregroundStyle(.white)
-				}
-			}
+				Text("log in")
+					.font(.title3)
+					.padding(.vertical)
+					.foregroundStyle(colorScheme == .light ? Color.white : Color.black)
+					.background(
+						Rectangle()
+							.stroke(.primary, lineWidth: 2)
+							.frame(width: screenWidth * 0.9)
+							.background(colorScheme == .light ? Color.black : Color.white)
+					)
+					.padding(.trailing)
+			}.buttonStyle(PlainButtonStyle())
 			
 			Spacer()
 		}

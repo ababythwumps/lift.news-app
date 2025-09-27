@@ -16,25 +16,56 @@ final class AppViewModel: ObservableObject {
 	@Published var todaysArticle: Article? = nil
 	@Published var isLoading = false
 	@Published var errorMessage: String? = nil
-
+	
 	private let api = NewsAPI()
-
-	func loadNews() async {
+	
+	func loadNews(maxRetries: Int = 10) async {
 		isLoading = true
 		errorMessage = nil
-		
-		var currentArticleNumber: Int = 0
 		
 		do {
 			let articles = try await api.fetchNews()
 			self.articles = articles
 			self.positiveArticles = articles.filterPositive()
-			self.todaysArticle = positiveArticles[currentArticleNumber]
+			
+			guard !positiveArticles.isEmpty else {
+				throw URLError(.fileDoesNotExist)
+			}
+			
+			var attempt = 0
+			var currentArticleNumber = 0
+			var success = false
+			
+			while attempt < maxRetries &&
+					currentArticleNumber < positiveArticles.count &&
+					!success {
+				
+				do {
+					self.todaysArticle = positiveArticles[currentArticleNumber]
+					
+					if let content = self.todaysArticle?.fullContent, !content.isEmpty {
+						success = true
+						break
+					} else {
+						throw URLError(.cannotDecodeRawData)
+					}
+				} catch {
+					attempt += 1
+					currentArticleNumber += 1
+					print("Retry #\(attempt) failed. Moving to next article...")
+				}
+			}
+			
+			if !success {
+				errorMessage = "Could not load an article after \(maxRetries) attempts."
+				self.todaysArticle = nil
+			}
 		} catch {
-			currentArticleNumber += 1
-			self.todaysArticle = positiveArticles[currentArticleNumber]
+			self.errorMessage = "Error fetching news: \(error.localizedDescription)"
 			print("Error fetching news: \(error)")
 		}
+		
+		isLoading = false
 	}
 }
 
