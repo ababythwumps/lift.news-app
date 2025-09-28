@@ -74,12 +74,16 @@ struct LogInSignUpView: View {
 		}
 		
 		.sheet(isPresented: self.$logInClicked, onDismiss: {
-			dismiss()
+			if appViewModel.user != nil {
+				dismiss()
+			}
 		}) {
 			LogInView(authViewModel: authViewModel, appViewModel: appViewModel)
 		}
 		.sheet(isPresented: self.$signUpClicked, onDismiss: {
-			dismiss()
+			if appViewModel.user != nil {
+				dismiss()
+			}
 		}) {
 			SignUpView(authViewModel: authViewModel, appViewModel: appViewModel)
 		}

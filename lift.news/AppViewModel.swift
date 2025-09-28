@@ -9,7 +9,7 @@ import Foundation
 internal import Combine
 
 final class AppViewModel: ObservableObject {
-	@Published var user: User?
+	@Published var user: User? = nil
 	
 	@Published var articles: [Article] = []
 	@Published var positiveArticles: [Article] = []
