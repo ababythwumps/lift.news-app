@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FoundationModels
 
 class NewsAPI {
 	private let apiKey = "f9a5486d7cca49d08fdfbf3fc46ae86d"

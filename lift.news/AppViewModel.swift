@@ -7,6 +7,7 @@
 
 import Foundation
 internal import Combine
+import FoundationModels
 
 final class AppViewModel: ObservableObject {
 	@Published var user: User? = nil
@@ -18,6 +19,7 @@ final class AppViewModel: ObservableObject {
 	@Published var errorMessage: String? = nil
 	
 	private let api = NewsAPI()
+	private let foundationModel = FoundationModels()
 	
 	func loadNews(maxRetries: Int = 10) async {
 		isLoading = true
@@ -45,6 +47,12 @@ final class AppViewModel: ObservableObject {
 					
 					if let content = self.todaysArticle?.fullContent, !content.isEmpty {
 						success = true
+						
+						print("about to send to foundational model")
+						self.todaysArticle?.fullContent = try await foundationModel.generate(self.todaysArticle!.fullContent!)
+						print("Sent to foundational model")
+						print(self.todaysArticle!.fullContent!)
+						
 						break
 					} else {
 						throw URLError(.cannotDecodeRawData)
@@ -83,7 +91,7 @@ struct SentimentAnalyzer {
 	private let negativeWords: Set<String> = [
 		"death", "murder", "war", "violence", "crash", "disaster", "terrorism",
 		"crime", "scandal", "controversy", "conflict", "shooting", "attack",
-		"fraud", "corruption", "lawsuit", "bankruptcy", "fired", "layoffs", "dies", "die"
+		"fraud", "corruption", "lawsuit", "bankruptcy", "fired", "layoffs", "dies"
 	]
 	
 	func isPositive(_ text: String) -> Bool {
@@ -106,5 +114,27 @@ extension Array where Element == Article {
 		return self.filter { article in
 			analyzer.isPositive(article.title + " " + (article.description ?? ""))
 		}
+	}
+}
+
+struct FoundationModels {
+	private let instructions = """
+		The following text is all the text on a website with an article in it. Help me remove all the text that does not pertain to the actual body of the article. Thanks!
+	"""
+	
+	public func generate(_ input: String) async throws -> String {
+		guard SystemLanguageModel.default.isAvailable else {
+			return input
+		}
+		
+		let session = LanguageModelSession(instructions: instructions)
+		
+		let seed = UInt64(Calendar.current.component(.dayOfYear, from: .now))
+		let sampling = GenerationOptions.SamplingMode.random(top: 10, seed: seed)
+		let options = GenerationOptions(sampling: sampling, temperature: 0.7)
+		
+		let response = try await session.respond(to: input, options: options)
+		print(response)
+		return response.content
 	}
 }
